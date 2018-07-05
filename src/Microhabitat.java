@@ -6,7 +6,7 @@ public class Microhabitat {
     int S, S_max;
 
     //death and migration rates
-    private double d = 0., b = 0.2;
+    private double d = 0., b = 0.1;
     private double K_prime = 33.;
 
     public Microhabitat(int S, double c){

@@ -25,6 +25,22 @@ public class BioSystem {
         microhabitats[0].fillWithWildType(initialPop);
     }
 
+    public BioSystem(int L, int S, double c, String token){
+
+        this.L = L;
+        this.s = S;
+        this.s_max = S;
+        this.alpha = alpha;
+        this.microhabitats = new Microhabitat[L];
+        this.timeElapsed = 0.;
+
+        for(int i = 0; i < L; i++){
+            //double c_i = Math.exp(alpha*(double)i) - 1.;
+            microhabitats[i] = new Microhabitat(S, c);
+        }
+        microhabitats[0].fillWithWildType(initialPop);
+    }
+
     public int getL(){
         return L;
     }
@@ -86,7 +102,7 @@ public class BioSystem {
         }else if(microhab_index == L-1){
             microhabitats[L-1].removeABacterium();
             microhabitats[L-2].addABacterium();
-            //randomly moves the bacteria forward or backward
+        //randomly moves the bacteria forward or backward
         }else{
             if(rand.nextBoolean()){
                 microhabitats[microhab_index].removeABacterium();
@@ -219,6 +235,88 @@ public class BioSystem {
     }
 
 
+    public static void uniformGradient_spatialAndGRateDistributions(double input_c){
+
+        int L = 500, nReps = 20;
+        int nTimeMeasurements = 20;
+
+        double duration = 2000., interval = duration/(double)nTimeMeasurements;
+        double preciseDuration = duration/5., preciseInterval = preciseDuration/(double)nTimeMeasurements;
+
+        double c = input_c;
+        int S = 500;
+
+        String filename = "simple-fastGrowers-c="+String.valueOf(c)+"-spatialDistribution-FINAL";
+        String filename_gRate = "simple-fastGrowers-c="+String.valueOf(c)+"-gRateDistribution-FINAL";
+        String filename_precise = "simple-fastGrowers-c="+String.valueOf(c)+"-spatialDistribution_precise-FINAL";
+        String filename_gRate_precise = "simple-fastGrowers-c="+String.valueOf(c)+"-gRateDistribution_precise-FINAL";
+
+        int[][][] allMeasurements = new int[nReps][][];
+        double[][][] allGRateMeasurements = new double[nReps][][];
+
+        int[][][] allPreciseMeasurements = new int[nReps][][];
+        double[][][] allPreciseGRateMeasurements = new double[nReps][][];
+
+        for(int r = 0; r < nReps; r++){
+
+            boolean alreadyRecorded = false, alreadyPreciselyRecorded = false;
+
+            int[][] popsOverTime = new int[nTimeMeasurements+1][];
+            double[][] gRatesOverTime = new double[nTimeMeasurements+1][];
+            int timerCounter = 0;
+
+            int[][] precisePopsOverTime = new int[nTimeMeasurements+1][];
+            double[][] preciseGRatesOverTime = new double[nTimeMeasurements+1][];
+            int preciseTimerCounter = 0;
+
+
+            BioSystem bs = new BioSystem(L, S, c, "bla");
+
+            while(bs.timeElapsed <= duration){
+
+                bs.performAction();
+
+                if((bs.getTimeElapsed()%preciseInterval >= 0. && bs.getTimeElapsed()%preciseInterval <= 0.01) && !alreadyPreciselyRecorded &&
+                        preciseTimerCounter <= nTimeMeasurements){
+
+                    System.out.println("rep: "+r+"\ttime elapsed: "+String.valueOf(bs.getTimeElapsed())+"\tPRECISE");
+                    precisePopsOverTime[preciseTimerCounter] = bs.getSpatialDistributionArray();
+                    preciseGRatesOverTime[preciseTimerCounter] = bs.getGrowthRatesArray();
+
+                    alreadyPreciselyRecorded = true;
+                    preciseTimerCounter++;
+                }
+                if(bs.getTimeElapsed()%preciseInterval >= 0.1) alreadyPreciselyRecorded = false;
+
+
+                if((bs.getTimeElapsed()%interval >= 0. && bs.getTimeElapsed()%interval <= 0.01) && !alreadyRecorded){
+
+                    System.out.println("rep: "+r+"\ttime elapsed: "+String.valueOf(bs.getTimeElapsed()));
+                    popsOverTime[timerCounter] = bs.getSpatialDistributionArray();
+                    gRatesOverTime[timerCounter] = bs.getGrowthRatesArray();
+
+                    alreadyRecorded = true;
+                    timerCounter++;
+                }
+                if(bs.getTimeElapsed()%interval >= 0.1) alreadyRecorded = false;
+            }
+
+            allMeasurements[r] = popsOverTime;
+            allGRateMeasurements[r] = gRatesOverTime;
+            allPreciseMeasurements[r] = precisePopsOverTime;
+            allPreciseGRateMeasurements[r] = preciseGRatesOverTime;
+        }
+
+        double[][] averagedPopDistributions = Toolbox.averagedResults(allMeasurements);
+        double[][] averagedGRateDistributions = Toolbox.averagedResults(allGRateMeasurements);
+        double[][] averagedPrecisePopDistributions = Toolbox.averagedResults(allPreciseMeasurements);
+        double[][] averagedPreciseGRateDistributions = Toolbox.averagedResults(allPreciseGRateMeasurements);
+
+        Toolbox.printAveragedResultsToFile(filename, averagedPopDistributions);
+        Toolbox.printAveragedResultsToFile(filename_gRate, averagedGRateDistributions);
+        Toolbox.printAveragedResultsToFile(filename_precise, averagedPrecisePopDistributions);
+        Toolbox.printAveragedResultsToFile(filename_gRate_precise, averagedPreciseGRateDistributions);
+    }
 
 
 
