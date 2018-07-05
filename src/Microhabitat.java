@@ -49,7 +49,7 @@ public class Microhabitat {
         if(S > 0) S--;
     }
 
-    public void removeABacterium(){N--;}
+    public void removeABacterium(){if(N>0) N--;}
     public void addABacterium(){N++;}
 
 

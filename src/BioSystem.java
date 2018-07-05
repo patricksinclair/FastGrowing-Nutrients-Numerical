@@ -143,8 +143,9 @@ public class BioSystem {
 
         if(rand_chance <= migrate_rate) migrate(mh_index);
         else if(rand_chance > migrate_rate && rand_chance <= (migrate_rate + death_rate)) death(mh_index);
-        else if(rand_chance > (migrate_rate + death_rate) && rand_chance <= (migrate_rate + death_rate + replication_rate))
-        {replicate(mh_index);}
+        else if(rand_chance > (migrate_rate + death_rate) && rand_chance <= (migrate_rate + death_rate + replication_rate)) {
+            replicate(mh_index);
+        }
 
         timeElapsed += 1./((double)N*R_max);
     }
